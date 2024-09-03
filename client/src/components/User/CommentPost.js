@@ -29,7 +29,7 @@ const CommentPost = () => {
     if (params?.pid && auth?.user._id) getpost();
     setPostId(params?.pid);
     setUserId(auth?.user._id);
-  }, [params?.pid, auth?.user._id]);
+  }, [params?.pid, auth?.user._id, getpost, post]);
   //getpost
   const getpost = async () => {
     try {
@@ -77,7 +77,7 @@ const CommentPost = () => {
     if (params?.pid) {
       getAllComments();
     }
-  }, [params?.pid, comments]);
+  }, [params?.pid, comments, getAllComments]);
 
   //delete comment
 
@@ -215,10 +215,7 @@ const CommentPost = () => {
                                                           className="d-flex mt-3"
                                                           key={reply._id}
                                                         >
-                                                          <a
-                                                            className="me-3"
-                                                            href="#"
-                                                          >
+                                                          <a className="me-3">
                                                             <img
                                                               className="rounded-circle shadow-1-strong"
                                                               src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(11).webp"

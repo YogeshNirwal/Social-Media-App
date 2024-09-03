@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/auth";
 import { MdDelete } from "react-icons/md";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { BiSolidLike } from "react-icons/bi";
 import { MdInsertComment } from "react-icons/md";
 import toast from "react-hot-toast";
@@ -33,7 +33,7 @@ function AllUsers() {
     try {
       let answer = window.confirm("Are You Sure want to delete this post ? ");
       if (!answer) return;
-      const { data } = await axios.delete(
+      await axios.delete(
         `${window.location.origin}/api/v1/post/delete-post/${id}`
       );
       toast.success("post DEleted Succfully");

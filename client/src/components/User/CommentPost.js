@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import OuterLayout from "../layouts/OuterLayout";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -25,13 +25,7 @@ const CommentPost = () => {
   const [updateComment, setUpdateComment] = useState({});
   const [comments, setComments] = useState([]);
 
-  useEffect(() => {
-    if (params?.pid && auth?.user._id) getpost();
-    setPostId(params?.pid);
-    setUserId(auth?.user._id);
-  }, [params?.pid, auth?.user._id, getpost, post]);
-  //getpost
-  const getpost = async () => {
+  const getpost = useCallback(async () => {
     try {
       const { data } = await axios.get(
         `${window.location.origin}/api/v1/post/get-post/${params.pid}`
@@ -40,13 +34,20 @@ const CommentPost = () => {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [params.pid]);
 
-  //post comment
+  useEffect(() => {
+    if (params?.pid && auth?.user._id) {
+      getpost();
+      setPostId(params?.pid);
+      setUserId(auth?.user._id);
+    }
+  }, [params?.pid, auth?.user._id, getpost]);
+
   const postComment = async (content) => {
     try {
       const { data } = await axios.post(
-        `${window.location.origin}/api/v1/comment/create-comment `,
+        `${window.location.origin}/api/v1/comment/create-comment`,
         { userId, postId, content }
       );
       if (data.success) {
@@ -60,9 +61,7 @@ const CommentPost = () => {
     }
   };
 
-  //get all comments this post
-
-  const getAllComments = async () => {
+  const getAllComments = useCallback(async () => {
     try {
       const { data } = await axios.get(
         `${window.location.origin}/api/v1/comment/get-comment/${params.pid}`
@@ -70,16 +69,15 @@ const CommentPost = () => {
       setComments(data?.comments);
     } catch (error) {
       console.log(error);
-      toast.error("something went wrong in gatting comments");
+      toast.error("something went wrong in getting comments");
     }
-  };
+  }, [params.pid]);
+
   useEffect(() => {
     if (params?.pid) {
       getAllComments();
     }
-  }, [params?.pid, comments, getAllComments]);
-
-  //delete comment
+  }, [params?.pid, getAllComments]);
 
   const deleteComment = async (commentId) => {
     try {
@@ -93,7 +91,6 @@ const CommentPost = () => {
     }
   };
 
-  // comment update
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -167,170 +164,138 @@ const CommentPost = () => {
                 <h1>Comments</h1>
                 {comments.map((comment) => {
                   return (
-                    <>
-                      <section className="gradient-custom ms-5 mb-2">
-                        <div className="container  ">
-                          <div className="row d-flex justify-content-center">
-                            <div className="col-md-12 col-lg-10 col-xl-20">
-                              <div className="card">
-                                <div className="card-body p-4">
-                                  <div className="row">
-                                    <div className="col">
-                                      <div className="d-flex flex-start">
-                                        <img
-                                          className="rounded-circle shadow-1-strong me-3"
-                                          src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(10).webp"
-                                          alt="avatar"
-                                          width={65}
-                                          height={65}
-                                        />
-                                        <div className="flex-grow-1 flex-shrink-1">
-                                          <div>
-                                            <div className="d-flex justify-content-between align-items-center">
-                                              <p className="mb-1 fw-bold">
-                                                {comment.userId.name}
-                                                <span className="small ms-3">
-                                                  -
-                                                  {moment
-                                                    .utc(comment?.createdAt)
-                                                    .local()
-                                                    .fromNow()}
-                                                </span>
-                                              </p>
-                                            </div>
-                                            <p className="small mb-0">
-                                              {comment.content}
+                    <section className="gradient-custom ms-5 mb-2" key={comment._id}>
+                      <div className="container">
+                        <div className="row d-flex justify-content-center">
+                          <div className="col-md-12 col-lg-10 col-xl-20">
+                            <div className="card">
+                              <div className="card-body p-4">
+                                <div className="row">
+                                  <div className="col">
+                                    <div className="d-flex flex-start">
+                                      <img
+                                        className="rounded-circle shadow-1-strong me-3"
+                                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(10).webp"
+                                        alt="avatar"
+                                        width={65}
+                                        height={65}
+                                      />
+                                      <div className="flex-grow-1 flex-shrink-1">
+                                        <div>
+                                          <div className="d-flex justify-content-between align-items-center">
+                                            <p className="mb-1 fw-bold">
+                                              {comment.userId.name}
+                                              <span className="small ms-3">
+                                                -
+                                                {moment
+                                                  .utc(comment?.createdAt)
+                                                  .local()
+                                                  .fromNow()}
+                                              </span>
                                             </p>
                                           </div>
+                                          <p className="small mb-0">
+                                            {comment.content}
+                                          </p>
+                                        </div>
 
-                                          <div className="d-flex flex-column flex-start mt-4">
-                                            {comment._id ===
-                                            showReplyCommentId ? (
-                                              <>
-                                                {comment.replies.map(
-                                                  (reply) => {
-                                                    return (
-                                                      <>
-                                                        <div
-                                                          className="d-flex mt-3"
-                                                          key={reply._id}
-                                                        >
-                                                          <a className="me-3">
-                                                            <img
-                                                              className="rounded-circle shadow-1-strong"
-                                                              src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(11).webp"
-                                                              alt="avatar"
-                                                              width={65}
-                                                              height={65}
-                                                            />
-                                                          </a>
-                                                          <div className="flex-grow-1 flex-shrink-1">
-                                                            <div>
-                                                              <div className="d-flex justify-content-between align-items-center">
-                                                                <p className="mb-1 fw-bold">
-                                                                  {
-                                                                    reply.userId
-                                                                      .name
-                                                                  }
-                                                                  <span className="small ms-1">
-                                                                    -
-                                                                    {moment
-                                                                      .utc(
-                                                                        comment?.createdAt
-                                                                      )
-                                                                      .local()
-                                                                      .fromNow()}
-                                                                  </span>
-                                                                </p>
-                                                              </div>
-                                                              <p className="small mb-0">
-                                                                {reply.content}
-                                                              </p>
-                                                            </div>
-                                                          </div>
+                                        <div className="d-flex flex-column flex-start mt-4">
+                                          {comment._id ===
+                                          showReplyCommentId ? (
+                                            <>
+                                              {comment.replies.map((reply) => {
+                                                return (
+                                                  <div
+                                                    className="d-flex mt-3"
+                                                    key={reply._id}
+                                                  >
+                                                    <button className="me-3" style={{ background: 'none', border: 'none' }}>
+                                                      <img
+                                                        className="rounded-circle shadow-1-strong"
+                                                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(11).webp"
+                                                        alt="avatar"
+                                                        width={65}
+                                                        height={65}
+                                                      />
+                                                    </button>
+                                                    <div className="flex-grow-1 flex-shrink-1">
+                                                      <div>
+                                                        <div className="d-flex justify-content-between align-items-center">
+                                                          <p className="mb-1 fw-bold">
+                                                            {
+                                                              reply.userId
+                                                                .name
+                                                            }
+                                                            <span className="small ms-1">
+                                                              -
+                                                              {moment
+                                                                .utc(
+                                                                  comment?.createdAt
+                                                                )
+                                                                .local()
+                                                                .fromNow()}
+                                                            </span>
+                                                          </p>
                                                         </div>
-                                                      </>
-                                                    );
-                                                  }
-                                                )}
-                                              </>
-                                            ) : (
-                                              <></>
-                                            )}
-                                          </div>
+                                                        <p className="small mb-0">
+                                                          {reply.content}
+                                                        </p>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </>
+                                          ) : null}
                                         </div>
                                       </div>
                                     </div>
                                   </div>
-                                  <ul className="list-group list-group-horizontal mt-2">
-                                    <li
-                                      className="list-group-item cursor"
-                                      onClick={() => {
-                                        setVisible(true);
-                                        setUpdateComment(comment.content);
-                                        setSelected(comment);
-                                      }}
-                                    >
-                                      Edit
-                                    </li>
-                                    <li
-                                      className="list-group-item cursor"
-                                      onClick={() => {
-                                        setReply(true);
-                                        setUpdateComment("");
-                                        setSelected(comment);
-                                      }}
-                                    >
-                                      Reply
-                                    </li>
-                                    <li
-                                      className="list-group-item cursor"
-                                      onClick={() => {
-                                        setShowReplyCommentId(comment._id);
-                                      }}
-                                    >
-                                      Show Reply
-                                    </li>
-                                    <li
-                                      className="list-group-item cursor"
-                                      onClick={() => {
-                                        deleteComment(comment._id);
-                                      }}
-                                    >
-                                      Delete
-                                    </li>
-                                  </ul>
                                 </div>
+                                <ul className="list-group list-group-horizontal mt-2">
+                                  <li
+                                    className="list-group-item cursor"
+                                    onClick={() => {
+                                      setVisible(true);
+                                      setUpdateComment(comment.content);
+                                      setSelected(comment);
+                                    }}
+                                  >
+                                    Edit
+                                  </li>
+                                  <li
+                                    className="list-group-item cursor"
+                                    onClick={() => {
+                                      setReply(true);
+                                      setUpdateComment("");
+                                      setSelected(comment);
+                                    }}
+                                  >
+                                    Reply
+                                  </li>
+                                  <li
+                                    className="list-group-item cursor"
+                                    onClick={() => {
+                                      setShowReplyCommentId(comment._id);
+                                    }}
+                                  >
+                                    Show Reply
+                                  </li>
+                                  <li
+                                    className="list-group-item cursor"
+                                    onClick={() => {
+                                      deleteComment(comment._id);
+                                    }}
+                                  >
+                                    Delete
+                                  </li>
+                                </ul>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </section>
-
-                      <Modal
-                        onCancel={() => setVisible(false)}
-                        footer={null}
-                        visible={visible}
-                      >
-                        <UpdateForm
-                          value={updateComment}
-                          setValue={setUpdateComment}
-                          handleSubmit={handleUpdate}
-                        />
-                      </Modal>
-                      <Modal
-                        onCancel={() => setReply(false)}
-                        footer={null}
-                        visible={reply}
-                      >
-                        <UpdateForm
-                          value={updateComment}
-                          setValue={setUpdateComment}
-                          reply={reply}
-                          handleSubmit={handleReply}
-                        />
-                      </Modal>
-                    </>
+                      </div>
+                    </section>
                   );
                 })}
 
@@ -354,6 +319,31 @@ const CommentPost = () => {
           </div>
         </div>
       </OuterLayout>
+
+      <Modal
+        onCancel={() => setVisible(false)}
+        footer={null}
+        visible={visible}
+      >
+        <UpdateForm
+          value={updateComment}
+          setValue={setUpdateComment}
+          handleSubmit={handleUpdate}
+        />
+      </Modal>
+
+      <Modal
+        onCancel={() => setReply(false)}
+        footer={null}
+        visible={reply}
+      >
+        <UpdateForm
+          value={updateComment}
+          setValue={setUpdateComment}
+          reply={reply}
+          handleSubmit={handleReply}
+        />
+      </Modal>
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import OuterLayout from "../layouts/OuterLayout";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -25,24 +25,24 @@ const CommentPost = () => {
   const [updateComment, setUpdateComment] = useState({});
   const [comments, setComments] = useState([]);
 
-  const getpost = useCallback(async () => {
-    try {
-      const { data } = await axios.get(
-        `${window.location.origin}/api/v1/post/get-post/${params.pid}`
-      );
-      setPost(data?.post);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [params.pid]);
-
   useEffect(() => {
+    const getpost = async () => {
+      try {
+        const { data } = await axios.get(
+          `${window.location.origin}/api/v1/post/get-post/${params.pid}`
+        );
+        setPost(data?.post);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     if (params?.pid && auth?.user._id) {
       getpost();
       setPostId(params?.pid);
       setUserId(auth?.user._id);
     }
-  }, [params?.pid, auth?.user._id, getpost]);
+  }, [params?.pid, auth?.user._id]);
 
   const postComment = async (content) => {
     try {
@@ -61,23 +61,23 @@ const CommentPost = () => {
     }
   };
 
-  const getAllComments = useCallback(async () => {
-    try {
-      const { data } = await axios.get(
-        `${window.location.origin}/api/v1/comment/get-comment/${params.pid}`
-      );
-      setComments(data?.comments);
-    } catch (error) {
-      console.log(error);
-      toast.error("something went wrong in getting comments");
-    }
-  }, [params.pid]);
-
   useEffect(() => {
+    const getAllComments = async () => {
+      try {
+        const { data } = await axios.get(
+          `${window.location.origin}/api/v1/comment/get-comment/${params.pid}`
+        );
+        setComments(data?.comments);
+      } catch (error) {
+        console.log(error);
+        toast.error("something went wrong in getting comments");
+      }
+    };
+
     if (params?.pid) {
       getAllComments();
     }
-  }, [params?.pid, getAllComments]);
+  }, [params?.pid]);
 
   const deleteComment = async (commentId) => {
     try {
@@ -261,7 +261,7 @@ const CommentPost = () => {
                                       setSelected(comment);
                                     }}
                                   >
-                                    Edit
+                                    Update
                                   </li>
                                   <li
                                     className="list-group-item cursor"

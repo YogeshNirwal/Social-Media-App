@@ -25,24 +25,24 @@ const CommentPost = () => {
   const [updateComment, setUpdateComment] = useState({});
   const [comments, setComments] = useState([]);
 
-  useEffect(() => {
-    const getpost = async () => {
-      try {
-        const { data } = await axios.get(
-          `${window.location.origin}/api/v1/post/get-post/${params.pid}`
-        );
-        setPost(data?.post);
-      } catch (error) {
-        console.log(error);
-      }
-    };
+ const getpost = useCallback(async () => {
+    try {
+      const { data } = await axios.get(
+        `${window.location.origin}/api/v1/post/get-post/${params.pid}`
+      );
+      setPost(data?.post);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [params.pid]);
 
+  useEffect(() => {
     if (params?.pid && auth?.user._id) {
       getpost();
       setPostId(params?.pid);
       setUserId(auth?.user._id);
     }
-  }, [params?.pid, auth?.user._id]);
+  }, [params?.pid, auth?.user._id, getpost]);
 
   const postComment = async (content) => {
     try {
@@ -61,24 +61,24 @@ const CommentPost = () => {
     }
   };
 
-  useEffect(() => {
-    const getAllComments = async () => {
-      try {
-        const { data } = await axios.get(
-          `${window.location.origin}/api/v1/comment/get-comment/${params.pid}`
-        );
-        setComments(data?.comments);
-      } catch (error) {
-        console.log(error);
-        toast.error("something went wrong in getting comments");
-      }
-    };
+  const getAllComments = useCallback(async () => {
+    try {
+      const { data } = await axios.get(
+        `${window.location.origin}/api/v1/comment/get-comment/${params.pid}`
+      );
+      setComments(data?.comments);
+    } catch (error) {
+      console.log(error);
+      toast.error("something went wrong in getting comments");
+    }
+  }, [params.pid]);
 
+  useEffect(() => {
     if (params?.pid) {
       getAllComments();
     }
-  }, [params?.pid]);
-
+  }, [params?.pid, getAllComments]);
+  
   const deleteComment = async (commentId) => {
     try {
       await axios.delete(
@@ -320,7 +320,7 @@ const CommentPost = () => {
         </div>
       </OuterLayout>
 
-      <Modal
+    <Modal
         onCancel={() => setVisible(false)}
         footer={null}
         visible={visible}
